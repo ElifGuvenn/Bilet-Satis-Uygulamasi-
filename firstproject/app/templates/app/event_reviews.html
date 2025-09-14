@@ -1,0 +1,123 @@
+{% extends 'app/satici_navbar.html' %}
+{% load static %}
+{% block title %}Event Reviews{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">🎭 Event Reviews</h2>
+    <form method="get" class="row g-3 align-items-center mb-4">
+        <div class="col-auto">
+            <select class="form-select" name="date_filter">
+                <option value="all" {% if date_filter == "all" %}selected{% endif %}>All Dates</option>
+                <option value="future" {% if date_filter == "future" %}selected{% endif %}>Future</option>
+                <option value="past" {% if date_filter == "past" %}selected{% endif %}>Past</option>
+            </select>
+        </div>
+        <div class="col-auto position-relative">
+            <input type="text" id="citySearch" 
+                   class="form-control" placeholder="Search City..." value="{{ selected_city|default:'' }}">
+            <input type="hidden" name="city" id="hidden_city_input" value="{{ selected_city|default:'' }}">
+            <div id="citySuggestions" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; display: none;"></div>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Apply</button>
+        </div>
+    </form>
+    {% if event_reviews_grouped %}
+        {% for item in event_reviews_grouped %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title">{{ item.event.title }}</h5>
+                <p class="text-muted">{{ item.event.date }} • {{ item.event.location }} • {{ item.event.city }}</p>
+                {% if item.reviews %}
+                <div class="mb-3">
+                    {% with avg=item.average_rating %}
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="me-2">⭐ {{ avg|floatformat:1 }}/5</span>
+                        <div class="progress flex-grow-1" style="height: 8px;">
+                            <div class="progress-bar bg-warning" 
+                                 role="progressbar" 
+                                 aria-valuenow="{{ avg }}" aria-valuemin="0" aria-valuemax="5">
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                </div>
+                <div class="list-group">
+                    {% for review in item.reviews %}
+                    <div class="list-group-item d-flex align-items-start">
+                        <div class="me-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                 style="width:40px; height:40px;">
+                                {{ review.user.username|first|upper }}
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ review.user.username }}</strong>
+                                <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                            </div>
+                            <p class="mb-1">{{ review.comment }}</p>
+                            <small class="text-warning">⭐ {{ review.rating }}/5</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted p-4">
+                    <i class="bi bi-chat-square-dots fs-1"></i>
+                    <p class="mt-2">No comments yet for this event.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">No events found.</div>
+    {% endif %}
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cityInput = document.getElementById('citySearch');
+    const hiddenCityInput = document.getElementById('hidden_city_input');
+    const citySuggestions = document.getElementById('citySuggestions')
+    if (cityInput) {
+        cityInput.addEventListener('input', function() {
+            const query = this.value;
+            if (query.length < 2) {
+                hiddenCityInput.value = ''; 
+                citySuggestions.style.display = 'none';
+                citySuggestions.innerHTML = '';
+                return;}
+            fetch(`/get-city-suggestions/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    citySuggestions.innerHTML = '';
+                    if (data.length > 0) {
+                        citySuggestions.style.display = 'block';
+                        data.forEach(city => {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item list-group-item-action';
+                            li.textContent = city;
+                            li.style.cursor = 'pointer';
+                            li.addEventListener('click', function() {
+                                cityInput.value = city;
+                                hiddenCityInput.value = city;
+                                citySuggestions.style.display = 'none';});
+                            citySuggestions.appendChild(li);});
+                    } else {
+                        citySuggestions.style.display = 'block';
+                        citySuggestions.innerHTML = '<li class="list-group-item disabled">No results found</li>'; } })
+                .catch(error => console.error('Error:', error));});
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            if (cityInput.value === '') {
+                hiddenCityInput.value = '';
+            } else if (hiddenCityInput.value !== '' && hiddenCityInput.value !== cityInput.value) {
+                hiddenCityInput.value = cityInput.value; }});
+
+        document.addEventListener('click', function(e) {
+            if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
+                citySuggestions.style.display = 'none';
+                citySuggestions.innerHTML = ''; }}); }});
+</script>
+{% endblock %}

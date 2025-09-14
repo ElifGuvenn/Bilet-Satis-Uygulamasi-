@@ -1,0 +1,216 @@
+{% extends 'app/navbar.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container mt-5">
+    {% if messages %}
+        <ul class="messages list-unstyled alert-area mb-3">
+            {% for message in messages %}
+                <li class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card mb-4 shadow-sm">
+                {% if event.image %}
+                    <img src="{{ event.image.url }}" class="card-img-top rounded" alt="{{ event.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <h1 class="card-title">{{ event.title }}</h1>
+                    <p><strong>Category:</strong> {{ event.get_category_display }}</p>
+                    <p><strong>Date:</strong> {{ event.date|date:"d M Y" }} | <strong>Hour:</strong> {{ event.time|time:"H:i" }}</p>
+                    <p><strong>Location:</strong> {{ event.location }}</p>
+                    <p>{{ event.description }}</p>
+
+                    {% if event.artist %}
+                        <p><strong>Artist:</strong> {{ event.artist.name }}</p>
+                    {% endif %}
+                    {% if event.actor %}
+                        <p><strong>Actor:</strong> {{ event.actor.name }}</p>
+                    {% endif %}
+                    <form action="{% url 'event_detail' event.id %}" method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="ticket_type" class="form-label">Ticket Selection</label>
+                            <select name="ticket_type" id="ticket_type" class="form-select">
+                                {% if event.seats_a > 0 %}
+                                    <option value="A" {% if selected_ticket_type == 'A' %}selected{% endif %}>A Type - {{ prices.A|floatformat:2 }} TL</option>
+                                {% else %}
+                                    <option disabled>A Type - Sold out</option>
+                                {% endif %}
+                                {% if event.seats_b > 0 %}
+                                    <option value="B" {% if selected_ticket_type == 'B' %}selected{% endif %}>B Type - {{ prices.B|floatformat:2 }} TL</option>
+                                {% else %}
+                                    <option disabled>B Type - Sold out</option>
+                                {% endif %}
+                                {% if event.seats_c > 0 %}
+                                    <option value="C" {% if selected_ticket_type == 'C' %}selected{% endif %}>C Type - {{ prices.C|floatformat:2 }} TL</option>
+                                {% else %}
+                                    <option disabled>C Type - Sold out</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <button type="submit" name="ticket_purchase_submit" class="btn btn-primary">
+                            Buy Ticket
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h3 class="h5 mb-0">Event comments and ratings</h3>
+                </div>
+                <div class="card-body">
+                    {% if average_rating %}
+                        <p class="text-center h4">Average score: <strong>{{ average_rating|floatformat:1 }}/5</strong>
+                            {% for _ in "12345"|slice:":{{ average_rating|floatformat:0 }}" %}⭐{% endfor %}
+                        </p>
+                        <hr>
+                    {% else %}
+                        <p class="text-center text-muted">No ratings yet.</p>
+                        <hr>
+                    {% endif %}
+                    {% if user.is_authenticated %}
+                        <h5 class="mb-3"></h5>
+                        <form action="{% url 'event_detail' event.id %}" method="post">
+                            {% csrf_token %}
+                            {{ review_form.non_field_errors }}
+                            <div class="mb-3">
+                                <label for="rating-input" class="form-label">{{ review_form.rating.label }}:</label>
+                                <div class="rating" id="rating-input">
+                                    {% for radio in review_form.rating %}
+                                        {{ radio.tag }}<label for="{{ radio.id_for_label }}"></label>
+                                    {% endfor %}
+                                </div>
+                                {% if review_form.rating.errors %}
+                                    <ul class="errorlist">
+                                        {% for error in review_form.rating.errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ review_form.comment.id_for_label }}" class="form-label">{{ review_form.comment.label }}:</label>
+                                {{ review_form.comment }}
+                                {% if review_form.comment.errors %}
+                                    <ul class="errorlist">
+                                        {% for error in review_form.comment.errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                            <button type="submit" name="review_submit" class="btn btn-success mt-2">Save comment</button>
+                        </form>
+                        <hr>
+                        {% if user_reviews %}
+                            <h5 class="mt-4">My Comments:</h5>
+                            <div class="list-group mb-4">
+                                {% for review in user_reviews %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center mb-2 shadow-sm">
+                                        <div>
+                                            <p class="mb-1">{{ review.comment }}</p>
+                                            <small class="text-warning">Score: {{ review.rating }}/5  </small>
+                                            <br>
+                                            <small class="text-muted">Date: {{ review.created_at|date:"d M Y H:i" }}</small>
+                                        </div>
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editReviewModal{{ review.id }}">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteReviewModal{{ review.id }}">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="modal fade" id="editReviewModal{{ review.id }}" tabindex="-1" aria-labelledby="editReviewModalLabel{{ review.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="editReviewModalLabel{{ review.id }}">Edit comment</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form method="post" action="{% url 'event_detail' event.id %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="review_id" value="{{ review.id }}">
+                                                        <input type="hidden" name="review_edit">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Your Score:</label>
+                                                            <div class="rating-modal">
+                                                                {% for i in "54321" %}
+                                                                    <input type="radio" id="rating-{{ review.id }}-{{ i }}" name="rating" value="{{ i }}" {% if review.rating|stringformat:"i" == i %}checked{% endif %}>
+                                                                    <label for="rating-{{ review.id }}-{{ i }}">★</label>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="comment-{{ review.id }}" class="form-label">Your Comment:</label>
+                                                            <textarea name="comment" id="comment-{{ review.id }}" rows="3" class="form-control" required>{{ review.comment }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal fade" id="deleteReviewModal{{ review.id }}" tabindex="-1" aria-labelledby="deleteReviewModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteReviewModalLabel">Delete comment</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to delete your comment?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form method="post" action="{% url 'event_detail' event.id %}">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="review_id" value="{{ review.id }}">
+                                                        <button type="submit" name="review_delete" class="btn btn-danger">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-warning" role="alert">
+                            To comment and rate <a href="{% url 'login' %}" class="alert-link">Please log in</a>.
+                        </div>
+                    {% endif %}
+                    <hr>
+                    <h5 class="mt-4">All comments:</h5>
+                    {% if reviews %}
+                        <div class="list-group">
+                            {% for review in reviews %}
+                                <div class="list-group-item mb-2 shadow-sm">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong>{{ review.user.username }}</strong>
+                                        <small class="text-muted">{{ review.created_at|date:"d M Y H:i" }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ review.comment }}</p>
+                                    <small class="text-warning">Score: {{ review.rating }}/5  </small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">There are no comments for this event yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

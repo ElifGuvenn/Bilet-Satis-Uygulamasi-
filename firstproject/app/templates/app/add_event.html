@@ -1,0 +1,151 @@
+{% extends 'app/satici_navbar.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Add Event{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Add New Event</h1>
+    {% for message in messages %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+    <div class="card shadow p-3">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {{ form.title|as_crispy_field }}
+            {{ form.description|as_crispy_field }}
+            {{ form.date|as_crispy_field }}
+            {{ form.time|as_crispy_field }}
+            {{ form.city|as_crispy_field }}
+            {{ form.location|as_crispy_field }}
+            {{ form.category|as_crispy_field }}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3" style="position: relative;">
+                        <label for="artistInput">Artist</label>
+                        <input type="text" class="form-control" placeholder="Search for an artist..." id="artistInput" name="artist_name">
+                        <input type="hidden" name="artist" id="hiddenArtistId">
+                        <ul id="artistSuggestions" class="list-group position-absolute w-100" style="z-index: 100;"></ul>
+                        {% if form.artist.errors %}
+                            <div class="alert alert-danger mt-2" role="alert">
+                                {{ form.artist.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3" style="position: relative;">
+                        <label for="actorInput">Actor</label>
+                        <input type="text" class="form-control" placeholder="Search for an actor..." id="actorInput" name="actor_name">
+                        <input type="hidden" name="actor" id="hiddenActorId">
+                        <ul id="actorSuggestions" class="list-group position-absolute w-100" style="z-index: 100;"></ul>
+                        {% if form.actor.errors %}
+                            <div class="alert alert-danger mt-2" role="alert">
+                                {{ form.actor.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            {{ form.price_a|as_crispy_field }}
+            {{ form.price_b|as_crispy_field }}
+            {{ form.price_c|as_crispy_field }}
+            {{ form.seats_a|as_crispy_field }}
+            {{ form.seats_b|as_crispy_field }}
+            {{ form.seats_c|as_crispy_field }}
+            {{ form.image|as_crispy_field }}
+            
+            <button type="submit" class="btn btn-primary w-100 mt-3">Add Event</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    
+        const artistInput = document.getElementById('artistInput');
+        const hiddenArtistId = document.getElementById('hiddenArtistId');
+        const artistSuggestions = document.getElementById('artistSuggestions');
+
+        if (artistInput) {
+            artistInput.addEventListener('input', function() {
+                const query = this.value;
+                if (query.length > 1) {
+                    fetch(`{% url 'get_artist_suggestions' %}?q=${query}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            artistSuggestions.innerHTML = '';
+                            if (data.length > 0) {
+                                artistSuggestions.style.display = 'block';
+                                data.forEach(artist => {
+                                    const li = document.createElement('li');
+                                    li.className = 'list-group-item list-group-item-action';
+                                    li.textContent = artist.name;
+                                    li.dataset.id = artist.id;
+                                    li.style.cursor = 'pointer';
+                                    li.addEventListener('click', function() {
+                                        artistInput.value = artist.name;
+                                        hiddenArtistId.value = artist.id;
+                                        artistSuggestions.style.display = 'none';
+                                        
+                                        document.getElementById('actorInput').value = '';
+                                        document.getElementById('hiddenActorId').value = ''; });
+                                    artistSuggestions.appendChild(li); });
+                            } else {
+                                artistSuggestions.style.display = 'block';
+                                artistSuggestions.innerHTML = '<li class="list-group-item disabled">No artist found.</li>'; } })
+                        .catch(error => console.error('Error:', error));
+                } else {
+                    artistSuggestions.style.display = 'none';
+                    hiddenArtistId.value = ''; }});
+            document.addEventListener('click', function(e) {
+                if (!artistInput.contains(e.target) && !artistSuggestions.contains(e.target)) {
+                    artistSuggestions.style.display = 'none';  }}); }
+
+        const actorInput = document.getElementById('actorInput');
+        const hiddenActorId = document.getElementById('hiddenActorId');
+        const actorSuggestions = document.getElementById('actorSuggestions');
+
+        if (actorInput) {
+            actorInput.addEventListener('input', function() {
+                const query = this.value;
+                if (query.length > 1) {
+                    fetch(`{% url 'get_actor_suggestions' %}?q=${query}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            actorSuggestions.innerHTML = '';
+                            if (data.length > 0) {
+                                actorSuggestions.style.display = 'block';
+                                data.forEach(actor => {
+                                    const li = document.createElement('li');
+                                    li.className = 'list-group-item list-group-item-action';
+                                    li.textContent = actor.name;
+                                    li.dataset.id = actor.id;
+                                    li.style.cursor = 'pointer';
+                                    li.addEventListener('click', function() {
+                                        actorInput.value = actor.name;
+                                        hiddenActorId.value = actor.id;
+                                        actorSuggestions.style.display = 'none';
+                                        
+                                        document.getElementById('artistInput').value = '';
+                                        document.getElementById('hiddenArtistId').value = ''; });
+                                    actorSuggestions.appendChild(li); });
+                            } else {
+                                actorSuggestions.style.display = 'block';
+                                actorSuggestions.innerHTML = '<li class="list-group-item disabled">No actor found.</li>';   }})
+                        .catch(error => console.error('Error:', error));
+                } else {
+                    actorSuggestions.style.display = 'none';
+                    hiddenActorId.value = '';  } });
+            document.addEventListener('click', function(e) {
+                if (!actorInput.contains(e.target) && !actorSuggestions.contains(e.target)) {
+                    actorSuggestions.style.display = 'none'; } }); }});
+</script>
+{% endblock %}

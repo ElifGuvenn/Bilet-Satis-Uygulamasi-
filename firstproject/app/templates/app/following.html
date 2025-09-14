@@ -1,0 +1,164 @@
+{% extends 'app/navbar.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block title %}Following{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Followed Artists and Actors</h1>
+    <hr>
+    {% if messages %}
+        <ul class="messages list-unstyled alert-area">
+            {% for message in messages %}
+                <li class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Artists</h2>
+                </div>
+                <div class="card-body">
+                    <h4 class="mt-4">Select to Follow</h4>
+                    <form method="post" action="{% url 'follow_artist' 0 %}" id="followArtistForm">
+    {% csrf_token %}
+    <div class="input-group mb-3" style="position: relative;">
+        <input type="text" class="form-control" placeholder="Search for an artist..." id="artistInput">
+        <input type="hidden" name="artist_id" id="hiddenArtistId">
+        <button type="submit" class="btn btn-success" id="followArtistBtn" disabled>Follow</button>
+    </div>
+    <ul id="artistSuggestions" class="list-group position-absolute w-100" style="z-index: 100;"></ul>
+</form>
+                    <h4 class="mt-4">My Followers (Artists)</h4>
+                    {% if followed_artists %}
+                        <ul class="list-group">
+                            {% for artist in followed_artists %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ artist.name }}
+                                    <a href="{% url 'remove_artist' artist.id %}" class="btn btn-danger btn-sm">Unfollow</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">You don't have any artists following you yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h2 class="h5 mb-0">Actors</h2>
+                </div>
+                <div class="card-body">
+                    <h4 class="mt-4">Select to Follow</h4>
+                    <form method="post" action="{% url 'follow_actor' 0 %}" id="followActorForm">
+    {% csrf_token %}
+    <div class="input-group mb-3" style="position: relative;">
+        <input type="text" class="form-control" placeholder="Search for an actor..." id="actorInput">
+        <input type="hidden" name="actor_id" id="hiddenActorId">
+        <button type="submit" class="btn btn-success" id="followActorBtn" disabled>Follow</button>
+    </div>
+    <ul id="actorSuggestions" class="list-group position-absolute w-100" style="z-index: 100;"></ul>
+</form>
+                    <h4 class="mt-4">My Followers (Actors)</h4>
+                    {% if followed_actors %}
+                        <ul class="list-group">
+                            {% for actor in followed_actors %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ actor.name }}
+                                    <a href="{% url 'remove_actor' actor.id %}" class="btn btn-danger btn-sm">Unfollow</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">You don't have any actors following you yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+        const artistInput = document.getElementById('artistInput');
+        const hiddenArtistId = document.getElementById('hiddenArtistId');
+        const artistSuggestions = document.getElementById('artistSuggestions');
+        const followArtistBtn = document.getElementById('followArtistBtn');
+        const followArtistForm = document.getElementById('followArtistForm');
+
+        if (artistInput) {
+            artistInput.addEventListener('input', function() {
+                const query = this.value;
+                if (query.length > 1) {
+                    fetch(`{% url 'get_artist_suggestions' %}?q=${query}`)
+                        .then(response => response.json())
+                        .then(data => { artistSuggestions.innerHTML = '';
+                            if (data.length > 0) {
+                                artistSuggestions.style.display = 'block';
+                                data.forEach(artist => {
+                                    const li = document.createElement('li');
+                                    li.className = 'list-group-item list-group-item-action';
+                                    li.textContent = artist.name;
+                                    li.dataset.id = artist.id;
+                                    li.style.cursor = 'pointer';
+                                    li.addEventListener('click', function() {
+                                        artistInput.value = artist.name;
+                                        hiddenArtistId.value = artist.id;
+                                        artistSuggestions.style.display = 'none';
+                                        followArtistBtn.disabled = false;
+                                        followArtistForm.action = `{% url 'follow_artist' 0 %}`.replace('0', artist.id);});
+                                    artistSuggestions.appendChild(li);});
+                            } else {
+                                artistSuggestions.style.display = 'block';
+                                artistSuggestions.innerHTML = '<li class="list-group-item disabled">No artist found.</li>';} })
+                        .catch(error => console.error('Error:', error));
+                } else {
+                    artistSuggestions.style.display = 'none';
+                    followArtistBtn.disabled = true;
+                    hiddenArtistId.value = ''; }});
+        document.addEventListener('click', function(e) {
+                if (!artistInput.contains(e.target) && !artistSuggestions.contains(e.target)) {
+                    artistSuggestions.style.display = 'none';}}); }
+                     const actorInput = document.getElementById('actorInput');
+                     const hiddenActorId = document.getElementById('hiddenActorId');
+                     const actorSuggestions = document.getElementById('actorSuggestions');
+                     const followActorBtn = document.getElementById('followActorBtn');
+                     const followActorForm = document.getElementById('followActorForm');
+        if (actorInput) {
+            actorInput.addEventListener('input', function() {
+                const query = this.value;
+                if (query.length > 1) {
+                    fetch(`{% url 'get_actor_suggestions' %}?q=${query}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            actorSuggestions.innerHTML = '';
+                            if (data.length > 0) {
+                                actorSuggestions.style.display = 'block';
+                                data.forEach(actor => {
+                                    const li = document.createElement('li');
+                                    li.className = 'list-group-item list-group-item-action';
+                                    li.textContent = actor.name;
+                                    li.dataset.id = actor.id;
+                                    li.style.cursor = 'pointer';
+                                    li.addEventListener('click', function() {
+                                        actorInput.value = actor.name;
+                                        hiddenActorId.value = actor.id;
+                                        actorSuggestions.style.display = 'none';
+                                        followActorBtn.disabled = false;
+                                        followActorForm.action = `{% url 'follow_actor' 0 %}`.replace('0', actor.id)});
+                                    actorSuggestions.appendChild(li); });
+                            } else {
+                                actorSuggestions.style.display = 'block';
+                                actorSuggestions.innerHTML = '<li class="list-group-item disabled">No actor found.</li>'; } })
+                        .catch(error => console.error('Error:', error));
+                } else {
+                    actorSuggestions.style.display = 'none';
+                    followActorBtn.disabled = true;
+                    hiddenActorId.value = '';}});
+            document.addEventListener('click', function(e) {
+                if (!actorInput.contains(e.target) && !actorSuggestions.contains(e.target)) {
+                    actorSuggestions.style.display = 'none';} }); } });
+</script>
+{% endblock %}

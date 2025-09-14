@@ -1,0 +1,114 @@
+{% extends 'app/satici_navbar.html' %}
+{% load static %}
+{% block title %} Sales and Ticket Management {% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Sales and Ticket Management</h1>
+    <div class="mb-4 d-flex align-items-center">
+        <h5 class="me-3 mb-0">Filter by City:</h5>
+        <div style="position: relative; width: 300px;">
+            <input type="text" class="form-control" placeholder="Search for a city..." id="cityInput" value="{{ selected_city|default:'' }}">
+            <ul id="citySuggestions" class="list-group position-absolute w-100" style="z-index: 100; display: none;"></ul>
+        </div>
+        <a href="{% url 'sales_view' %}" class="btn btn-outline-secondary ms-3">Clear Filter</a>
+    </div>
+    {% if selected_city %}
+        <h4 class="mb-4">City: <span class="badge bg-secondary">{{ selected_city }}</span></h4>
+    {% else %}
+        <h4 class="mb-4">All Cities: <span class="badge bg-secondary">All Cities</span></h4>
+    {% endif %}
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Sales Revenue</h5>
+                    <p class="card-text fs-4">{{ total_revenue }} ₺</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Tickets Sold</h5>
+                    <p class="card-text fs-4">{{ total_tickets_sold }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            Event-Based Sales Details
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-bordered text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Event</th>
+                        <th>City-Location</th>
+                        <th>Date-Time</th>
+                        <th>Sold Ticket</th>
+                        <th>Total Revenue (₺)</th>
+                        <th>Remainder A</th>
+                        <th>Remainder B</th>
+                        <th>Remainder C</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                        <tr>
+                            <td>{{ event.title }}</td>
+                            <td>{{ event.city }} {{event.location}}</td>
+                            <td>{{ event.date }} {{event.time}}</td>
+                            <td>{{ event.tickets_sold|default:0 }}</td>
+                            <td>{{ event.revenue|default:0 }}</td>
+                            <td>{{ event.seats_a }}</td>
+                            <td>{{ event.seats_b }}</td>
+                            <td>{{ event.seats_c }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">There are no events yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cityInput = document.getElementById('cityInput');
+        const citySuggestions = document.getElementById('citySuggestions');
+        if (cityInput) {
+            cityInput.addEventListener('input', function() {
+                const query = this.value;
+                if (query.length > 1) {
+                    fetch(`{% url 'get_city_suggestions' %}?q=${query}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            citySuggestions.innerHTML = '';
+                            if (data.length > 0) {
+                                citySuggestions.style.display = 'block';
+                                data.forEach(city => {
+                                    const li = document.createElement('li');
+                                    li.className = 'list-group-item list-group-item-action';
+                                    li.textContent = city;
+                                    li.style.cursor = 'pointer';
+                                    li.addEventListener('click', function() {
+                                        window.location.href = `{% url 'sales_view' %}?city=${city}`; });
+                                    citySuggestions.appendChild(li); });
+                            } else {
+                                citySuggestions.style.display = 'block';
+                                citySuggestions.innerHTML = '<li class="list-group-item disabled">No city found.</li>'; }  })
+                        .catch(error => console.error('Error:', error));
+                } else {
+                    citySuggestions.style.display = 'none'; }});
+
+            document.addEventListener('click', function(e) {
+                if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
+                    citySuggestions.style.display = 'none';}}); } });
+</script>
+{% endblock %}

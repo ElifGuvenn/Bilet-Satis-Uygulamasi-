@@ -1,0 +1,78 @@
+{% extends 'app/satici_navbar.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="text-center mb-4">Verify Ticket QR Code</h1>
+            <div class="card shadow-sm p-4 mb-4">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3 text-center">
+                        <label for="qr_code" class="form-label fs-5">Upload QR Code Image</label>
+                        <input type="file" class="form-control" id="qr_code" name="qr_code" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Verify</button>
+                    </div>
+                </form>
+            </div>
+            {% if ticket %}
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-success text-white text-center py-3 rounded-top">
+                        <h3 class="mb-0 fs-4">
+                            <i class="fas fa-check-circle me-2"></i> Ticket Verified Successfully!
+                        </h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12 text-center mb-3">
+                                <h4 class="fw-bold">{{ ticket.event.title }}</h4>
+                                <p class="text-muted">{{ ticket.event.date|date:"d M Y" }} | {{ ticket.event.time|time:"H:i" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card-text mb-2">
+                                    <strong>Ticket Type:</strong> {{ ticket.get_ticket_type_display }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card-text mb-2">
+                                    <strong>User:</strong> {{ ticket.user.username }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card-text mb-2">
+                                    <strong>Purchase Date:</strong> {{ ticket.purchase_date|date:"d.m.Y H:i" }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card-text mb-2">
+                                    <strong>Ticket Status:</strong> <span class="badge bg-success fs-6">USED</span>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-3">
+                        <div class="text-center">
+                            <p class="fs-6 text-success fw-bold">This ticket has now been used.</p>
+                        </div>
+                    </div>
+                </div>
+            {% elif error %}
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-danger text-white text-center py-3 rounded-top">
+                        <h3 class="mb-0 fs-4">
+                            <i class="fas fa-times-circle me-2"></i> Verification Failed
+                        </h3>
+                    </div>
+                    <div class="card-body p-4 text-center">
+                        <div class="alert alert-danger mb-0 fs-6" role="alert">
+                            {{ error }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}

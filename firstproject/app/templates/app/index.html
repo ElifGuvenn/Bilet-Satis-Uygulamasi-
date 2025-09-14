@@ -1,0 +1,16 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block title %}Homepage{% endblock %}
+{% block content %}
+<div class="text-center">
+ <h1 class="mb-4"> Welcome</h1>
+ <p class="lead">The best ticketing experience for concerts, theater and more</p>
+
+ <div class="d-flex justify-content-center">
+ <img src="{% static 'img/etkinlik.jpg' %}" alt="Etkinlik Görseli"
+
+   class="img-fluid rounded shadow"
+   style="max-width: 100%; height: auto;max-height: 700px; ">
+ </div>
+</div>
+{% endblock %}

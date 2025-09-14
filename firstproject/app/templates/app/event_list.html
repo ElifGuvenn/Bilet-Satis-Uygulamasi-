@@ -1,0 +1,145 @@
+{% extends 'app/navbar.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">Events</h1>
+    {% if not selected_city %}
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm p-4">
+                    <h5 class="card-title text-center mb-3">Please select a city to view events.</h5>
+                    <form method="get" id="city_form" action="{% url 'event_list' %}">
+                     <div class="mb-3" style="position: relative;">
+                     <label for="city_input" class="form-label">Select a City:</label>
+                     <input type="text" id="city_input" class="form-control" placeholder="Search for a city...">
+                     <input type="hidden" name="city" id="hidden_city_input">
+                     <ul id="city_suggestions" class="list-group" 
+                     style="position: absolute; z-index: 100; width: 100%; max-height: 200px; overflow-y: auto; display: none;">
+                     </ul>
+                     </div>
+                     <div class="text-center">
+                     <button type="submit" class="btn btn-primary mt-2">View Events</button>
+                     </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% else %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="fw-bold">{{ selected_city }} Events</h2>
+      <a href="{% url 'event_list' %}?clear_city=true" class="btn btn-outline-secondary btn-sm" title="Change City">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+   </div>
+        <form method="get" class="row g-3 mb-4">
+            <input type="hidden" name="city" value="{{ selected_city }}">
+            <div class="col-md-4">
+                <select name="category" class="form-select">
+                    <option value="all">All categories</option>
+                    {% for key, value in categories %}
+                        <option value="{{ key }}" {% if request.GET.category == key %}selected{% endif %}>
+                            {{ value }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4" style="position: relative;">
+                <input type="text" name="location" id="location_input" placeholder="Location" value="{{ request.GET.location }}" class="form-control">
+                <ul id="location_suggestions" class="list-group" 
+                    style="position: absolute; z-index: 100; width: 100%; max-height: 200px; overflow-y: auto;">
+                </ul>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="date" value="{{ request.GET.date }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+        <div class="row">
+            {% for event in events %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if event.image %}
+                            <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}" style="height:200px; object-fit:cover;">
+                        {% else %}
+                            <img src="{% static 'img/default.jpg' %}" class="card-img-top" alt="Default" style="height:200px; object-fit:cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ event.title }}</h5>
+                            <p class="text-muted mb-1">{{ event.get_category_display }}</p>
+                            <p>{{ event.location }} | {{ event.date }}</p>
+                            <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-primary w-100">Details</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted text-center">No events found in this city.</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+        const cityInput = document.getElementById('city_input');
+        const hiddenCityInput = document.getElementById('hidden_city_input');
+        const citySuggestions = document.getElementById('city_suggestions');
+        const cityForm = document.getElementById('city_form');
+        if (cityInput) {
+            cityInput.addEventListener('input', function() {
+                const query = this.value;
+                if (query.length > 1) {
+                    fetch(`/get-city-suggestions/?q=${query}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            citySuggestions.innerHTML = '';
+                            if (data.length > 0) {
+                                citySuggestions.style.display = 'block';
+                                data.forEach(city => {
+                                    const li = document.createElement('li');
+                                    li.className = 'list-group-item list-group-item-action';
+                                    li.textContent = city;
+                                    li.style.cursor = 'pointer';
+                                    li.addEventListener('click', function() {
+                                        cityInput.value = city;
+                                        hiddenCityInput.value = city;
+                                        citySuggestions.style.display = 'none';  });
+                                    citySuggestions.appendChild(li); });
+                            } else {
+                                citySuggestions.style.display = 'block';
+                                citySuggestions.innerHTML = '<li class="list-group-item disabled">No results found</li>';}})
+                        .catch(error => console.error('Error:', error));
+                } else {
+                    citySuggestions.style.display = 'none';
+                    citySuggestions.innerHTML = '';}});
+            document.addEventListener('click', function(e) {
+                if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
+                    citySuggestions.style.display = 'none';}});}
+        const locationInput = document.getElementById('location_input');
+        const suggestionsList = document.getElementById('location_suggestions');
+        if (locationInput) {
+            locationInput.addEventListener('input', function() {
+                const query = this.value;
+                const city = document.querySelector('input[name="city"]').value; 
+                if (query.length > 1) {
+                    fetch(`/get-location-suggestions/?loc=${query}&city=${city}`)
+                        .then(response => response.json())
+                        .then(data => {suggestionsList.innerHTML = ''; 
+                            if (data.length > 0) {
+                                data.forEach(location => {
+                                    const li = document.createElement('li');
+                                    li.className = 'list-group-item list-group-item-action';
+                                    li.textContent = location;
+                                    li.style.cursor = 'pointer';
+                                    li.addEventListener('click', function() {
+                                        locationInput.value = location;
+                                        suggestionsList.innerHTML = '';});
+                                    suggestionsList.appendChild(li);});
+                            } else {
+                                suggestionsList.innerHTML = '<li class="list-group-item disabled">no results found</li>'; }})
+                        .catch(error => console.error('Error:', error));
+                } else {
+                    suggestionsList.innerHTML = '';   } }); } });
+</script>
+{% endblock %}

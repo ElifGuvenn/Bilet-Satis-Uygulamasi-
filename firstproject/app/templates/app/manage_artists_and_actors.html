@@ -1,0 +1,167 @@
+{% extends 'app/admin_navbar.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Artist and Actor Management{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Artist and Actor Management</h1>
+    
+    <ul class="nav nav-pills nav-fill mb-4" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if not artist_to_edit and not actor_to_edit %}active{% endif %}"
+                    id="add-new-tab" data-bs-toggle="pill" data-bs-target="#addNew" type="button"
+                    role="tab" aria-controls="addNew" aria-selected="true">Add New</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if artist_to_edit %}active{% endif %}"
+                    id="artists-tab" data-bs-toggle="pill" data-bs-target="#artists" type="button"
+                    role="tab" aria-controls="artists" aria-selected="false">Artists</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if actor_to_edit %}active{% endif %}"
+                    id="actors-tab" data-bs-toggle="pill" data-bs-target="#actors" type="button"
+                    role="tab" aria-controls="actors" aria-selected="false">Actors</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="pills-tabContent">
+
+        <div class="tab-pane fade {% if not artist_to_edit and not actor_to_edit %}show active{% endif %}" id="addNew" role="tabpanel" aria-labelledby="add-new-tab">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">Add New Artist</div>
+                        <div class="card-body">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="add_artist" value="1">
+                                {{ artist_form|crispy }}
+                                <button type="submit" class="btn btn-success mt-3">Add Artist</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">Add New Actor</div>
+                        <div class="card-body">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="add_actor" value="1">
+                                {{ actor_form|crispy }}
+                                <button type="submit" class="btn btn-success mt-3">Add Actor</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade {% if artist_to_edit %}show active{% endif %}" id="artists" role="tabpanel" aria-labelledby="artists-tab">
+            {% if artist_to_edit %}
+                <div class="card shadow-sm p-4 mb-4">
+                    <h5 class="card-title fw-bold">Edit Artist: {{ artist_to_edit.name }}</h5>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ artist_form|crispy }}
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-success">Update</button>
+                            <a href="{% url 'manage_artists_and_actors' %}?tab=artists" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+            <div class="row">
+                {% for artist in artists %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">{{ artist.name }}</h5>
+                            <hr class="my-2">
+                            <p class="mb-1 text-muted">{{ artist.bio|truncatewords:20 }}</p>
+                            <div class="d-flex justify-content-end mt-3">
+                                <a href="{% url 'edit_artist' artist.id %}" class="btn btn-outline-primary btn-sm me-2">Edit</a>
+                                <form action="{% url 'delete_artist' artist.id %}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this artist?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center" role="alert">
+                        No artists found.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="tab-pane fade {% if actor_to_edit %}show active{% endif %}" id="actors" role="tabpanel" aria-labelledby="actors-tab">
+            {% if actor_to_edit %}
+                <div class="card shadow-sm p-4 mb-4">
+                    <h5 class="card-title fw-bold">Edit Actor: {{ actor_to_edit.name }}</h5>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ actor_form|crispy }}
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-success">Update</button>
+                           <a href="{% url 'manage_artists_and_actors' %}?tab=actors" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+            <div class="row">
+                {% for actor in actors %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">{{ actor.name }}</h5>
+                            <hr class="my-2">
+                            <p class="mb-1 text-muted">{{ actor.bio|truncatewords:20 }}</p>
+                            <div class="d-flex justify-content-end mt-3">
+                                <a href="{% url 'edit_actor' actor.id %}" class="btn btn-outline-primary btn-sm me-2">Edit</a>
+                                <form action="{% url 'delete_actor' actor.id %}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this actor?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center" role="alert">
+                        No actors found.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+
+        if (tab) {
+            const tabButton = document.getElementById(tab + '-tab');
+            if (tabButton) {
+                const allTabs = document.querySelectorAll('.nav-link');
+                allTabs.forEach(t => t.classList.remove('active'));
+
+                const allTabPanes = document.querySelectorAll('.tab-pane');
+                allTabPanes.forEach(tp => tp.classList.remove('show', 'active'));
+                tabButton.classList.add('active');
+                const targetPaneId = tabButton.getAttribute('data-bs-target');
+                const targetPane = document.querySelector(targetPaneId);
+                if (targetPane) {
+                    targetPane.classList.add('show', 'active');  } }  }});
+</script>
+{% endblock %}

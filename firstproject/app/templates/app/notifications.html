@@ -1,0 +1,95 @@
+{% extends 'app/navbar.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Notifications</h1>
+    <hr class="mb-4">
+    {% if notifications %}
+        <div class="d-flex justify-content-end mb-3">
+            <form method="POST" action="{% url 'mark_all_notifications_as_read' %}" class="me-2">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-primary" title="Mark all as read">
+                    Mark All as Read
+                </button>
+            </form>
+            <form method="POST" action="{% url 'notifications' %}" id="deleteSelectedForm">
+                {% csrf_token %}
+                <input type="hidden" name="notification_ids" id="selectedNotificationIds">
+                <button type="submit" class="btn btn-danger" id="deleteSelectedBtn" disabled>
+                    Delete Selected
+                </button>
+            </form>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                {% for notification in notifications %}
+                <div class="card mb-3 shadow-sm {% if not notification.is_read %}border-start border-3 border-primary{% endif %}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="form-check me-3 mt-1">
+                                <input class="form-check-input notification-checkbox" type="checkbox" value="{{ notification.id }}">
+                            </div>
+                            <a href="{% if notification.event %}{% url 'event_detail' notification.event.id %}{% else %}#{% endif %}" class="text-decoration-none text-dark flex-grow-1">
+                                <h5 class="mb-1">{{ notification.message }}</h5>
+                                {% if notification.event %}
+                                    <p class="mb-1 text-muted">Event: {{ notification.event.title }}</p>
+                                {% endif %}
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">{{ notification.timestamp|date:"d M Y H:i" }}</small>
+                                </div>
+                            </a>
+                            <div class="ms-3 d-flex align-items-center">
+                                {% if not notification.is_read %}
+                                <form action="{% url 'mark_notification_as_read' notification.id %}" method="post" class="d-inline me-2">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-success border-0 p-0" title="Mark as read">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <form action="{% url 'delete_notification' notification.id %}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this notification?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0 p-0" title="Delete notification">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            You don't have any notifications yet.
+        </div>
+    {% endif %}
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkboxes = document.querySelectorAll('.notification-checkbox');
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+        const hiddenInput = document.getElementById('selectedNotificationIds');
+        const deleteForm = document.getElementById('deleteSelectedForm');
+        function updateSelectedIds() {
+            const selected = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+            deleteBtn.disabled = selected.length === 0;
+            hiddenInput.value = selected.join(','); }
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedIds);});
+        deleteForm.addEventListener('submit', function(e) {
+            const selectedIds = hiddenInput.value.split(',');
+            hiddenInput.remove();
+            selectedIds.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'notification_ids';
+                input.value = id;
+                deleteForm.appendChild(input); }); });});
+</script>
+{% endblock %}

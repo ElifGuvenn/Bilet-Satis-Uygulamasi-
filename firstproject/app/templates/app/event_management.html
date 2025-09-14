@@ -1,0 +1,96 @@
+{% extends 'app/satici_navbar.html' %}
+{% load static %}
+{% block title %}My Campaigns{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">My Campaigns</h1>
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            My Events
+        </div>
+        <div class="card-body">
+            <div class="mb-4 d-flex align-items-center">
+                <h5 class="me-3 mb-0">Filter by City:</h5>
+                <div style="position: relative; width: 300px;">
+                    <input type="text" class="form-control" placeholder="Search for a city..." id="cityInput" value="{{ selected_city|default:'' }}">
+                    <ul id="citySuggestions" class="list-group position-absolute w-100" style="z-index: 100; display: none;"></ul>
+                </div>
+                <a href="{% url 'event_management' %}" class="btn btn-outline-secondary ms-3">Clear Filter</a>
+            </div>
+            <div class="events-list">
+                {% if seller_events %}
+                    <ul class="list-group">
+                        {% for event in seller_events %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5>{{ event.title }}</h5>
+                                    <p class="mb-1">Date: {{ event.date }} Time : {{event.time}}</p>
+
+                                    <p class="mb-1">
+                                        Location: {{ event.city }}, {{ event.location }}
+                                    </p>
+                                    <p class="mb-0">
+                                        Campaign Status:
+                                        {% if event.is_campaign_active %}
+                                            <span class="badge bg-primary">In the campaign!</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Not in Campaign</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div>
+                                    {% if event.is_campaign_active %}
+                                        <a href="{% url 'set_event_on_sale' event.id %}" class="btn btn-info btn-sm me-2">Edit Campaign</a>
+                                        <form action="{% url 'stop_event_sale' event.id %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm">Stop Campaign</button>
+                                        </form>
+                                    {% else %}
+                                        <a href="{% url 'set_event_on_sale' event.id %}" class="btn btn-warning btn-sm">Enter the Campaign</a>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-center text-muted">You haven't added any events yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cityInput = document.getElementById('cityInput');
+        const citySuggestions = document.getElementById('citySuggestions');
+        if (cityInput) {
+            cityInput.addEventListener('input', function() {
+                const query = this.value;
+                if (query.length > 1) {
+                    fetch(`{% url 'get_city_suggestions' %}?q=${query}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            citySuggestions.innerHTML = '';
+                            if (data.length > 0) {
+                                citySuggestions.style.display = 'block';
+                                data.forEach(city => {
+                                    const li = document.createElement('li');
+                                    li.className = 'list-group-item list-group-item-action';
+                                    li.textContent = city;
+                                    li.style.cursor = 'pointer';
+                                    li.addEventListener('click', function() {
+                                        window.location.href = `{% url 'event_management' %}?city=${city}`;});
+                                    citySuggestions.appendChild(li); });
+                            } else {
+                                citySuggestions.style.display = 'block';
+                                citySuggestions.innerHTML = '<li class="list-group-item disabled">No city found.</li>'; } })
+                        .catch(error => console.error('Error:', error));
+                } else {
+                    citySuggestions.style.display = 'none'; } });
+            document.addEventListener('click', function(e) {
+                if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
+                    citySuggestions.style.display = 'none';} }); }});
+</script>
+{% endblock %}

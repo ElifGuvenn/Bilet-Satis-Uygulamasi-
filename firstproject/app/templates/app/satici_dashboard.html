@@ -1,0 +1,17 @@
+{%extends 'app/satici_navbar.html'%}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %} S Dashboard{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Welcome, {{ user.username }}</h1>
+<div class="card mb-4">
+        <div class="card-header">
+            <h5>Your Information</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Member since:</strong> {{ user.date_joined|date:"d M Y" }}</p>
+        </div>
+    </div>
+   {%endblock%}

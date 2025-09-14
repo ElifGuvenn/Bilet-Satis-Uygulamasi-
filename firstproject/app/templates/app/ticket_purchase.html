@@ -1,0 +1,102 @@
+{% extends 'app/navbar.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white text-center py-3 rounded-top-3">
+                    <h2 class="card-title mb-0 fs-4">Ticket Purchase</h2>
+                </div>
+                <div class="card-body p-4">
+                    <h3 class="mb-3 fw-bold">{{ event.title }}</h3>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <p class="mb-1 text-muted">Ticket Type</p>
+                            <p class="fs-5 mb-0">{{ ticket_type }}</p>
+                        </div>
+                        <div class="col-6 text-end">
+                            <p class="mb-1 text-muted">Unit Price</p>
+                            <p class="fs-5 mb-0">
+                                <span id="unit-price" data-price="{{ price|floatformat:2 }}">
+                                    {{ price|floatformat:2 }} TL
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="quantity" class="form-label fw-bold">Ticket Quantity</label>
+                            <input
+                                type="number"
+                                id="quantity"
+                                name="quantity"
+                                value="1"
+                                min="1"
+                                max="{{ stock }}"
+                                class="form-control form-control-lg"
+                                onchange="updateTotal()">
+                                <div id="quantity-warning" class="alert alert-warning mt-2 d-none" role="alert">
+                                You can select a maximum of {{ stock }} tickets.
+                                   </div>
+                        </div>
+                        <div class="text-center mb-4">
+                            <h4 class="mb-1">Total Price</h4>
+                            <p class="fs-2 fw-bold text-success">
+                                <span id="total-price">{{ price|floatformat:2 }}</span> TL
+                            </p>
+                        </div>
+                        <hr class="my-4">
+                        <h4 class="mb-3 fw-bold">Payment Information</h4>
+                        <div class="mb-3">
+                            <label for="card_number" class="form-label">Card Number</label>
+                            <input type="text" id="card_number" name="card_number" placeholder="XXXX-XXXX-XXXX-XXXX" class="form-control" required autocomplete="off">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="expiry" class="form-label">Expiry Date</label>
+                                <input type="text" id="expiry" name="expiry" placeholder="MM/YY" class="form-control" required autocomplete="off">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cvv" class="form-label">CVV</label>
+                                <input type="text" id="cvv" name="cvv" placeholder="XXX" class="form-control" required autocomplete="off">
+                            </div>
+                        </div>
+                        {% if error %}
+                            <div class="alert alert-danger mt-3 text-center">{{ error }}</div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mt-3">
+                            Make Payment
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var price = parseFloat(document.getElementById("unit-price").dataset.price);
+    function updateTotal() {
+        var quantityInput = document.getElementById("quantity");
+        var warningBox = document.getElementById("quantity-warning");
+        var qty = parseInt(quantityInput.value) || 0;
+        var maxQty = parseInt(quantityInput.max);
+        var adjusted = false;
+        if (qty > maxQty) {
+            qty = maxQty;
+            quantityInput.value = maxQty;
+            adjusted = true; }
+        if (qty < 1) {
+            qty = 1;
+            quantityInput.value = 1;
+            adjusted = false;}
+        document.getElementById("total-price").textContent = (qty * price).toFixed(2);
+        if (adjusted) {
+            warningBox.classList.remove("d-none");
+        } else {
+            warningBox.classList.add("d-none"); }}
+    window.onload = updateTotal;
+</script>
+{% endblock %}
