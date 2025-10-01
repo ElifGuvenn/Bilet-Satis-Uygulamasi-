@@ -74,12 +74,14 @@
         const deleteBtn = document.getElementById('deleteSelectedBtn');
         const hiddenInput = document.getElementById('selectedNotificationIds');
         const deleteForm = document.getElementById('deleteSelectedForm');
+
+        
         function updateSelectedIds() {
-            const selected = Array.from(checkboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value);
+            const selected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
             deleteBtn.disabled = selected.length === 0;
             hiddenInput.value = selected.join(','); }
+
+
         checkboxes.forEach(checkbox => {
             checkbox.addEventListener('change', updateSelectedIds);});
         deleteForm.addEventListener('submit', function(e) {

@@ -4,18 +4,20 @@ from django.contrib.auth.models import auth
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib import messages
-from django.utils import timezone
 from .models import Event,Ticket, EventReview,Artist,Actor,Notification,CustomUser
 from django.urls import reverse
 from PIL import Image
-from datetime import datetime,date, time as dt_time
+import datetime as dt    
+from datetime import date
+from datetime import time as dt_time 
+from django.utils import timezone
 from collections import Counter
-import cv2,datetime,random ,numpy as np
+import cv2,datetime,random ,numpy as np 
 from django.db.models import Avg,Sum
 from django.http import JsonResponse 
 from decimal import Decimal
 from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import NearestNeighbors 
 
 def index_view(request):
     if request.user.is_authenticated:
@@ -39,10 +41,9 @@ def login_view(request):
             user = LoginForm.get_user()
             login(request, user)
             if user.user_type == 'C':
-                return redirect('dashboard')  # Alıcı paneli
+                return redirect('dashboard') # Alıcı paneli
             elif user.user_type == 'S':
-                return redirect('satici_dashboard')  # Satıcı paneli
-            
+                return redirect('satici_dashboard') # Satıcı paneli
             elif user.user_type == 'A' : # Admin Paneli
                 return redirect('custom_admin_dashboard')
             else:
@@ -95,8 +96,8 @@ def event_list(request):
     future_events = []
 
     for event in events_queryset:
-        event_datetime = timezone.make_aware(datetime.combine(event.date, event.time or dt_time.min))
-        if event_datetime >= now:
+       event_datetime = timezone.make_aware(dt.datetime.combine(event.date, event.time or dt.time.min))
+       if event_datetime >= now:
             future_events.append(event)
     random.shuffle(future_events)
     cities = Event.objects.filter(is_approved=True).values_list('city', flat=True).distinct()
@@ -228,7 +229,6 @@ def ticket_purchase(request, event_id):
         if quantity > stock:
             error = "Not enough tickets!"
 
-
         else:
             card_number = request.POST.get('card_number', '').replace(" ", "").replace("-", "")
             expiry = request.POST.get('expiry', '')
@@ -248,8 +248,7 @@ def ticket_purchase(request, event_id):
                 setattr(event, stock_map.get(ticket_type), stock - quantity)
                 event.save()
                 return redirect('my_tickets')
-    return render(request, 'app/ticket_purchase.html', 
-        {'event': event,'ticket_type': ticket_type, 'stock': stock,'price': price,'error': error})
+    return render(request, 'app/ticket_purchase.html', {'event': event,'ticket_type': ticket_type, 'stock': stock,'price': price,'error': error})
 
 @login_required
 def my_tickets(request):
@@ -257,10 +256,8 @@ def my_tickets(request):
     tickets = Ticket.objects.filter(user=request.user).select_related('event').order_by('-purchase_time')
     active_tickets = []
     past_tickets = []
-    
     for ticket in tickets:
-        event_datetime = timezone.make_aware(
-            datetime.combine(ticket.event.date, ticket.event.time or dt_time.min))
+        event_datetime = timezone.make_aware(dt.datetime.combine(ticket.event.date, ticket.event.time or dt_time.min))
         if event_datetime >= now:
             active_tickets.append(ticket)
         else:
@@ -268,15 +265,14 @@ def my_tickets(request):
 
     active_tickets.sort(key=lambda t: (t.event.date, t.event.time))
     past_tickets.sort(key=lambda t: (t.event.date, t.event.time), reverse=True)
-    return render(request, 'app/my_tickets.html',
-      {'active_tickets': active_tickets, 'past_tickets': past_tickets, })
+    return render(request, 'app/my_tickets.html', {'active_tickets': active_tickets, 'past_tickets': past_tickets, })
 
 @login_required
 def cancel_ticket(request, ticket_id): 
     ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
     event = ticket.event
     now = timezone.now()
-    event_datetime = timezone.make_aware(datetime.combine(event.date, event.time or dt_time.min))
+    event_datetime = timezone.make_aware(dt.datetime.combine(event.date, event.time or dt_time.min))
     if event_datetime < now:
         return redirect('my_tickets')
     stock_map = {'A': 'seats_a', 'B': 'seats_b', 'C': 'seats_c'}
@@ -292,7 +288,7 @@ def delete_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
     now = timezone.now()
     event = ticket.event
-    event_datetime = timezone.make_aware(datetime.combine(event.date, event.time or dt_time.min))
+    event_datetime = timezone.make_aware(dt.datetime.combine(event.date, event.time or dt_time.min))
     if event_datetime >= now:
         return redirect('my_tickets')
     ticket.delete()
@@ -426,7 +422,7 @@ def event_reviews(request):
     if date_filter in ['past', 'future']:
         events = []
         for event in seller_events_query:
-            event_datetime = datetime.combine(event.date, event.time or dt_time.min)
+            event_datetime = dt.datetime.combine(event.date, event.time or dt_time.min)
             event_datetime = timezone.make_aware(event_datetime) 
             if (date_filter == 'past' and event_datetime < now) or (date_filter == 'future' and event_datetime > now):
                 events.append(event.id)
@@ -511,7 +507,7 @@ def event_management(request):
     all_cities_for_filter = set() 
 
     for event in all_seller_events_qs:
-        event_datetime = datetime.combine(event.date, event.time or dt_time.min)
+        event_datetime = dt.datetime.combine(event.date, event.time or dt_time.min)
         event_datetime = timezone.make_aware(event_datetime) 
         if event_datetime > now:
             if selected_city:
@@ -627,9 +623,6 @@ def recommended_events(request):
             distances, indices = knn.kneighbors([user_features_scaled[user_idx]], n_neighbors=min(5, len(users) - 1) + 1)
             similar_user_indices = indices.flatten()[1:]
             similar_distances = distances.flatten()[1:]
-
-
-
 
             for i, dist in zip(similar_user_indices, similar_distances):
                 neighbor = users[int(i)]
@@ -757,15 +750,3 @@ def delete_actor(request, actor_id):
         actor.delete()
         messages.success(request, f'Actor "{actor_name}" deleted successfully.')
     return redirect(f"{reverse('manage_artists_and_actors')}?tab=actors")
-
-
-
-
-
-
-
-
-
-
-
-
