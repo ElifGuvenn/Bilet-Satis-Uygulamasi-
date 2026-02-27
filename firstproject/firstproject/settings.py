@@ -126,7 +126,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 AUTH_USER_MODEL = 'app.CustomUser'
 
-
+ALLOWED_HOSTS = ['Bilet-Satis-Uygulamasi-.onrender.com', 'localhost', '127.0.0.1']
 
 
 CSRF_COOKIE_NAME = 'csrftoken'  
