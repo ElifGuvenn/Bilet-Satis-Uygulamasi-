@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-n1h60u!iz4nsmllo75p!t$a2#a1ed*li@6fi)a-a*(+2%=o$l#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -127,7 +127,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 AUTH_USER_MODEL = 'app.CustomUser'
 
-ALLOWED_HOSTS = ['Bilet-Satis-Uygulamasi-.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['bilet-satis-uygulamasi.onrender.com', '.onrender.com', 'localhost', '127.0.0.1']
 
 
 CSRF_COOKIE_NAME = 'csrftoken'  
