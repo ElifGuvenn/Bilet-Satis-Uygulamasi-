@@ -1,17 +1,94 @@
-{%extends 'app/navbar.html'%}
+{% extends 'app/navbar.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
-{% block title %} Customer Dashboard{% endblock %}
+{% block title %}Profilim — Tikatik{% endblock %}
 {% block content %}
-<div class="container mt-5">
-    <h1>Welcome, {{ user.username }}</h1>
-<div class="card mb-4">
-        <div class="card-header">
-            <h5>Your Information</h5>
-        </div>
-        <div class="card-body">
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Member since:</strong> {{ user.date_joined|date:"d M Y" }}</p>
+
+<!-- Profil Başlığı -->
+<div class="profile-header mb-4">
+    <div class="profile-avatar">{{ user.username|first|upper }}</div>
+    <div class="profile-meta">
+        <h2 class="mb-0" style="font-size:1.5rem;">{{ user.username }}</h2>
+        <p class="text-muted mb-1" style="font-size:0.88rem;">{{ user.email }}</p>
+        <span class="hero-badge mb-0" style="font-size:0.75rem;display:inline-flex;margin-bottom:0!important;">
+            <i class="bi bi-calendar3 me-1"></i>
+            {{ user.date_joined|date:"d M Y" }}'den beri üye
+        </span>
+    </div>
+</div>
+
+<!-- Hızlı Erişim -->
+<h5 class="mb-3" style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-secondary);">
+    Hızlı Erişim
+</h5>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-sm-3">
+        <a href="{% url 'event_list' %}" class="quick-action">
+            <span class="quick-action-icon">🎭</span>
+            <span class="quick-action-label">Etkinlikler</span>
+        </a>
+    </div>
+    <div class="col-6 col-sm-3">
+        <a href="{% url 'my_tickets' %}" class="quick-action">
+            <span class="quick-action-icon">🎟️</span>
+            <span class="quick-action-label">Biletlerim</span>
+        </a>
+    </div>
+    <div class="col-6 col-sm-3">
+        <a href="{% url 'following' %}" class="quick-action">
+            <span class="quick-action-icon">❤️</span>
+            <span class="quick-action-label">Takip</span>
+        </a>
+    </div>
+    <div class="col-6 col-sm-3">
+        <a href="{% url 'notifications' %}" class="quick-action">
+            <span class="quick-action-icon">🔔</span>
+            <span class="quick-action-label">Bildirimler</span>
+        </a>
+    </div>
+</div>
+
+<!-- Hesap Bilgileri -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Hesap Bilgileri</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-sm-6">
+                <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:0.9rem;">
+                    <div style="font-size:0.72rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.3rem;">
+                        Kullanıcı Adı
+                    </div>
+                    <div style="font-weight:600;">{{ user.username }}</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:0.9rem;">
+                    <div style="font-size:0.72rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.3rem;">
+                        E-posta
+                    </div>
+                    <div style="font-weight:600;">{{ user.email }}</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:0.9rem;">
+                    <div style="font-size:0.72rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.3rem;">
+                        Üyelik Tarihi
+                    </div>
+                    <div style="font-weight:600;">{{ user.date_joined|date:"d M Y" }}</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:0.9rem;">
+                    <div style="font-size:0.72rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.3rem;">
+                        Son Giriş
+                    </div>
+                    <div style="font-weight:600;">{{ user.last_login|date:"d M Y H:i" }}</div>
+                </div>
+            </div>
         </div>
     </div>
-   {%endblock%}
+</div>
+
+{% endblock %}

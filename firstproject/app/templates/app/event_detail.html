@@ -1,216 +1,348 @@
 {% extends 'app/navbar.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
+{% block title %}{{ event.title }} — Tikatik{% endblock %}
 {% block content %}
-<div class="container mt-5">
-    {% if messages %}
-        <ul class="messages list-unstyled alert-area mb-3">
-            {% for message in messages %}
-                <li class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-    <div class="row">
-        <div class="col-md-7">
-            <div class="card mb-4 shadow-sm">
-                {% if event.image %}
-                    <img src="{{ event.image.url }}" class="card-img-top rounded" alt="{{ event.title }}">
-                {% endif %}
-                <div class="card-body">
-                    <h1 class="card-title">{{ event.title }}</h1>
-                    <p><strong>Category:</strong> {{ event.get_category_display }}</p>
-                    <p><strong>Date:</strong> {{ event.date|date:"d M Y" }} | <strong>Hour:</strong> {{ event.time|time:"H:i" }}</p>
-                    <p><strong>Location:</strong> {{ event.location }}</p>
-                    <p>{{ event.description }}</p>
 
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <!-- Sol: Etkinlik Detayı + Bilet Seçimi -->
+    <div class="col-lg-7">
+        <div class="card mb-4">
+            {% if event.image %}
+                <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}"
+                     style="height:280px;object-fit:cover;">
+            {% endif %}
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+                    <div>
+                        <h1 class="mb-1" style="font-size:1.7rem;">{{ event.title }}</h1>
+                        <span class="event-category-badge" style="position:static;display:inline-block;margin-bottom:0.5rem;">
+                            {{ event.get_category_display }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-6">
+                        <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:0.8rem;">
+                            <div style="font-size:0.75rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.2rem;">
+                                <i class="bi bi-calendar3 me-1"></i>Tarih & Saat
+                            </div>
+                            <div style="font-weight:600;">{{ event.date|date:"d M Y" }} — {{ event.time|time:"H:i" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:0.8rem;">
+                            <div style="font-size:0.75rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.2rem;">
+                                <i class="bi bi-geo-alt me-1"></i>Konum
+                            </div>
+                            <div style="font-weight:600;">{{ event.location }}{% if event.city %}, {{ event.city }}{% endif %}</div>
+                        </div>
+                    </div>
                     {% if event.artist %}
-                        <p><strong>Artist:</strong> {{ event.artist.name }}</p>
+                    <div class="col-sm-6">
+                        <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:0.8rem;">
+                            <div style="font-size:0.75rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.2rem;">
+                                <i class="bi bi-music-note me-1"></i>Sanatçı
+                            </div>
+                            <div style="font-weight:600;">{{ event.artist.name }}</div>
+                        </div>
+                    </div>
                     {% endif %}
                     {% if event.actor %}
-                        <p><strong>Actor:</strong> {{ event.actor.name }}</p>
-                    {% endif %}
-                    <form action="{% url 'event_detail' event.id %}" method="post" class="mt-4">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="ticket_type" class="form-label">Ticket Selection</label>
-                            <select name="ticket_type" id="ticket_type" class="form-select">
-                                {% if event.seats_a > 0 %}
-                                    <option value="A" {% if selected_ticket_type == 'A' %}selected{% endif %}>A Type - {{ prices.A|floatformat:2 }} TL</option>
-                                {% else %}
-                                    <option disabled>A Type - Sold out</option>
-                                {% endif %}
-                                {% if event.seats_b > 0 %}
-                                    <option value="B" {% if selected_ticket_type == 'B' %}selected{% endif %}>B Type - {{ prices.B|floatformat:2 }} TL</option>
-                                {% else %}
-                                    <option disabled>B Type - Sold out</option>
-                                {% endif %}
-                                {% if event.seats_c > 0 %}
-                                    <option value="C" {% if selected_ticket_type == 'C' %}selected{% endif %}>C Type - {{ prices.C|floatformat:2 }} TL</option>
-                                {% else %}
-                                    <option disabled>C Type - Sold out</option>
-                                {% endif %}
-                            </select>
+                    <div class="col-sm-6">
+                        <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:0.8rem;">
+                            <div style="font-size:0.75rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.2rem;">
+                                <i class="bi bi-person-badge me-1"></i>Oyuncu
+                            </div>
+                            <div style="font-weight:600;">{{ event.actor.name }}</div>
                         </div>
-                        <button type="submit" name="ticket_purchase_submit" class="btn btn-primary">
-                            Buy Ticket
-                        </button>
-                    </form>
+                    </div>
+                    {% endif %}
                 </div>
+
+                {% if event.description %}
+                    <p style="font-size:0.92rem;line-height:1.7;">{{ event.description }}</p>
+                {% endif %}
             </div>
         </div>
-        <div class="col-md-5">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-info text-white">
-                    <h3 class="h5 mb-0">Event comments and ratings</h3>
-                </div>
-                <div class="card-body">
-                    {% if average_rating %}
-                        <p class="text-center h4">Average score: <strong>{{ average_rating|floatformat:1 }}/5</strong>
-                            {% for _ in "12345"|slice:":{{ average_rating|floatformat:0 }}" %}⭐{% endfor %}
-                        </p>
-                        <hr>
-                    {% else %}
-                        <p class="text-center text-muted">No ratings yet.</p>
-                        <hr>
-                    {% endif %}
-                    {% if user.is_authenticated %}
-                        <h5 class="mb-3"></h5>
-                        <form action="{% url 'event_detail' event.id %}" method="post">
-                            {% csrf_token %}
-                            {{ review_form.non_field_errors }}
-                            <div class="mb-3">
-                                <label for="rating-input" class="form-label">{{ review_form.rating.label }}:</label>
-                                <div class="rating" id="rating-input">
-                                    {% for radio in review_form.rating %}
-                                        {{ radio.tag }}<label for="{{ radio.id_for_label }}"></label>
-                                    {% endfor %}
-                                </div>
-                                {% if review_form.rating.errors %}
-                                    <ul class="errorlist">
-                                        {% for error in review_form.rating.errors %}
-                                            <li>{{ error }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
-                            </div>
-                            <div class="mb-3">
-                                <label for="{{ review_form.comment.id_for_label }}" class="form-label">{{ review_form.comment.label }}:</label>
-                                {{ review_form.comment }}
-                                {% if review_form.comment.errors %}
-                                    <ul class="errorlist">
-                                        {% for error in review_form.comment.errors %}
-                                            <li>{{ error }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
-                            </div>
-                            <button type="submit" name="review_submit" class="btn btn-success mt-2">Save comment</button>
-                        </form>
-                        <hr>
-                        {% if user_reviews %}
-                            <h5 class="mt-4">My Comments:</h5>
-                            <div class="list-group mb-4">
-                                {% for review in user_reviews %}
-                                    <div class="list-group-item d-flex justify-content-between align-items-center mb-2 shadow-sm">
-                                        <div>
-                                            <p class="mb-1">{{ review.comment }}</p>
-                                            <small class="text-warning">Score: {{ review.rating }}/5  </small>
-                                            <br>
-                                            <small class="text-muted">Date: {{ review.created_at|date:"d M Y H:i" }}</small>
+
+        <!-- Bilet Satın Al -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-ticket-perforated me-2"></i>Bilet Seç</h5>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'event_detail' event.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label">Koltuk Tipi</label>
+                        <div class="row g-2">
+                            {% if event.seats_a > 0 %}
+                                <div class="col-4">
+                                    <label class="d-block" style="cursor:pointer;">
+                                        <input type="radio" name="ticket_type" value="A"
+                                               {% if selected_ticket_type == 'A' %}checked{% endif %}
+                                               class="d-none ticket-radio">
+                                        <div class="ticket-option-card text-center"
+                                             style="border:2px solid rgba(255,255,255,0.1);border-radius:12px;padding:1rem;transition:all 0.2s;">
+                                            <div style="font-weight:700;font-size:1.1rem;">A</div>
+                                            <div style="font-size:0.8rem;color:var(--text-secondary);">{{ prices.A|floatformat:0 }} TL</div>
+                                            <div style="font-size:0.72rem;color:var(--success);">{{ event.seats_a }} koltuk</div>
                                         </div>
-                                        <div>
-                                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editReviewModal{{ review.id }}">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteReviewModal{{ review.id }}">
-                                                <i class="bi bi-x"></i>
-                                            </button>
+                                    </label>
+                                </div>
+                            {% else %}
+                                <div class="col-4">
+                                    <div class="text-center" style="border:2px solid rgba(255,255,255,0.05);border-radius:12px;padding:1rem;opacity:0.4;">
+                                        <div style="font-weight:700;font-size:1.1rem;">A</div>
+                                        <div style="font-size:0.75rem;color:var(--danger);">Tükendi</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% if event.seats_b > 0 %}
+                                <div class="col-4">
+                                    <label class="d-block" style="cursor:pointer;">
+                                        <input type="radio" name="ticket_type" value="B"
+                                               {% if selected_ticket_type == 'B' %}checked{% endif %}
+                                               class="d-none ticket-radio">
+                                        <div class="ticket-option-card text-center"
+                                             style="border:2px solid rgba(255,255,255,0.1);border-radius:12px;padding:1rem;transition:all 0.2s;">
+                                            <div style="font-weight:700;font-size:1.1rem;">B</div>
+                                            <div style="font-size:0.8rem;color:var(--text-secondary);">{{ prices.B|floatformat:0 }} TL</div>
+                                            <div style="font-size:0.72rem;color:var(--success);">{{ event.seats_b }} koltuk</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            {% else %}
+                                <div class="col-4">
+                                    <div class="text-center" style="border:2px solid rgba(255,255,255,0.05);border-radius:12px;padding:1rem;opacity:0.4;">
+                                        <div style="font-weight:700;font-size:1.1rem;">B</div>
+                                        <div style="font-size:0.75rem;color:var(--danger);">Tükendi</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% if event.seats_c > 0 %}
+                                <div class="col-4">
+                                    <label class="d-block" style="cursor:pointer;">
+                                        <input type="radio" name="ticket_type" value="C"
+                                               {% if selected_ticket_type == 'C' %}checked{% endif %}
+                                               class="d-none ticket-radio">
+                                        <div class="ticket-option-card text-center"
+                                             style="border:2px solid rgba(255,255,255,0.1);border-radius:12px;padding:1rem;transition:all 0.2s;">
+                                            <div style="font-weight:700;font-size:1.1rem;">C</div>
+                                            <div style="font-size:0.8rem;color:var(--text-secondary);">{{ prices.C|floatformat:0 }} TL</div>
+                                            <div style="font-size:0.72rem;color:var(--success);">{{ event.seats_c }} koltuk</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            {% else %}
+                                <div class="col-4">
+                                    <div class="text-center" style="border:2px solid rgba(255,255,255,0.05);border-radius:12px;padding:1rem;opacity:0.4;">
+                                        <div style="font-weight:700;font-size:1.1rem;">C</div>
+                                        <div style="font-size:0.75rem;color:var(--danger);">Tükendi</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <button type="submit" name="ticket_purchase_submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="bi bi-cart-plus me-2"></i>Satın Al
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ: Yorumlar -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-chat-quote me-2"></i>Yorumlar & Puanlar</h5>
+            </div>
+            <div class="card-body">
+                {% if average_rating %}
+                    <div class="text-center mb-3" style="background:rgba(124,58,237,0.1);border-radius:12px;padding:1rem;">
+                        <div style="font-size:2.2rem;font-weight:900;background:linear-gradient(135deg,var(--purple-light),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                            {{ average_rating|floatformat:1 }}
+                        </div>
+                        <div style="color:var(--gold);font-size:1.1rem;margin:0.2rem 0;">★★★★★</div>
+                        <div style="font-size:0.8rem;color:var(--text-secondary);">ortalama puan</div>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center" style="font-size:0.88rem;">Henüz puan verilmemiş.</p>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                    <form action="{% url 'event_detail' event.id %}" method="post" class="mb-4">
+                        {% csrf_token %}
+                        {{ review_form.non_field_errors }}
+                        <div class="mb-3">
+                            <label class="form-label">Puanın</label>
+                            <div class="rating" id="rating-input">
+                                {% for radio in review_form.rating %}
+                                    {{ radio.tag }}<label for="{{ radio.id_for_label }}"></label>
+                                {% endfor %}
+                            </div>
+                            {% if review_form.rating.errors %}
+                                <ul class="errorlist">
+                                    {% for error in review_form.rating.errors %}<li>{{ error }}</li>{% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Yorumun</label>
+                            {{ review_form.comment }}
+                            {% if review_form.comment.errors %}
+                                <ul class="errorlist">
+                                    {% for error in review_form.comment.errors %}<li>{{ error }}</li>{% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <button type="submit" name="review_submit" class="btn btn-success w-100">
+                            <i class="bi bi-send me-2"></i>Yorum Gönder
+                        </button>
+                    </form>
+
+                    {% if user_reviews %}
+                        <div class="mb-3">
+                            <h6 class="text-muted" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;">Yorumlarım</h6>
+                            {% for review in user_reviews %}
+                                <div class="list-group-item d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <p class="mb-1" style="font-size:0.9rem;">{{ review.comment }}</p>
+                                        <div style="color:var(--gold);font-size:0.85rem;">
+                                            {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
+                                        </div>
+                                        <small class="text-muted">{{ review.created_at|date:"d M Y" }}</small>
+                                    </div>
+                                    <div class="d-flex gap-1 ms-2">
+                                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+                                                data-bs-target="#editReviewModal{{ review.id }}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal"
+                                                data-bs-target="#deleteReviewModal{{ review.id }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Modal -->
+                                <div class="modal fade" id="editReviewModal{{ review.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Yorumu Düzenle</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form method="post" action="{% url 'event_detail' event.id %}">
+                                                {% csrf_token %}
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="review_id" value="{{ review.id }}">
+                                                    <input type="hidden" name="review_edit">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Puan</label>
+                                                        <div class="rating-modal">
+                                                            {% for i in "54321" %}
+                                                                <input type="radio" id="rating-{{ review.id }}-{{ i }}"
+                                                                       name="rating" value="{{ i }}"
+                                                                       {% if review.rating|stringformat:"i" == i %}checked{% endif %}>
+                                                                <label for="rating-{{ review.id }}-{{ i }}">★</label>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Yorum</label>
+                                                        <textarea name="comment" rows="3" class="form-control" required>{{ review.comment }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
+                                                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                                                </div>
+                                            </form>
                                         </div>
                                     </div>
-                                    <div class="modal fade" id="editReviewModal{{ review.id }}" tabindex="-1" aria-labelledby="editReviewModalLabel{{ review.id }}" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="editReviewModalLabel{{ review.id }}">Edit comment</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
+                                </div>
+
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteReviewModal{{ review.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Yorumu Sil</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Bu yorumu silmek istediğinden emin misin?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
                                                 <form method="post" action="{% url 'event_detail' event.id %}">
                                                     {% csrf_token %}
-                                                    <div class="modal-body">
-                                                        <input type="hidden" name="review_id" value="{{ review.id }}">
-                                                        <input type="hidden" name="review_edit">
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Your Score:</label>
-                                                            <div class="rating-modal">
-                                                                {% for i in "54321" %}
-                                                                    <input type="radio" id="rating-{{ review.id }}-{{ i }}" name="rating" value="{{ i }}" {% if review.rating|stringformat:"i" == i %}checked{% endif %}>
-                                                                    <label for="rating-{{ review.id }}-{{ i }}">★</label>
-                                                                {% endfor %}
-                                                            </div>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label for="comment-{{ review.id }}" class="form-label">Your Comment:</label>
-                                                            <textarea name="comment" id="comment-{{ review.id }}" rows="3" class="form-control" required>{{ review.comment }}</textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                                                    </div>
+                                                    <input type="hidden" name="review_id" value="{{ review.id }}">
+                                                    <button type="submit" name="review_delete" class="btn btn-danger">Sil</button>
                                                 </form>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="modal fade" id="deleteReviewModal{{ review.id }}" tabindex="-1" aria-labelledby="deleteReviewModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="deleteReviewModalLabel">Delete comment</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    Are you sure you want to delete your comment?
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <form method="post" action="{% url 'event_detail' event.id %}">
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="review_id" value="{{ review.id }}">
-                                                        <button type="submit" name="review_delete" class="btn btn-danger">Delete</button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    {% else %}
-                        <div class="alert alert-warning" role="alert">
-                            To comment and rate <a href="{% url 'login' %}" class="alert-link">Please log in</a>.
-                        </div>
-                    {% endif %}
-                    <hr>
-                    <h5 class="mt-4">All comments:</h5>
-                    {% if reviews %}
-                        <div class="list-group">
-                            {% for review in reviews %}
-                                <div class="list-group-item mb-2 shadow-sm">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <strong>{{ review.user.username }}</strong>
-                                        <small class="text-muted">{{ review.created_at|date:"d M Y H:i" }}</small>
-                                    </div>
-                                    <p class="mb-1">{{ review.comment }}</p>
-                                    <small class="text-warning">Score: {{ review.rating }}/5  </small>
                                 </div>
                             {% endfor %}
                         </div>
-                    {% else %}
-                        <p class="text-muted">There are no comments for this event yet.</p>
+                        <hr>
                     {% endif %}
-                </div>
+
+                {% else %}
+                    <div class="alert alert-warning mb-3">
+                        <i class="bi bi-lock me-2"></i>
+                        Yorum yapmak için <a href="{% url 'login' %}" class="alert-link">giriş yapın</a>.
+                    </div>
+                {% endif %}
+
+                <h6 class="text-muted mb-3" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;">
+                    Tüm Yorumlar
+                </h6>
+                {% if reviews %}
+                    {% for review in reviews %}
+                        <div class="list-group-item mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong style="font-size:0.88rem;">{{ review.user.username }}</strong>
+                                <small class="text-muted">{{ review.created_at|date:"d M Y" }}</small>
+                            </div>
+                            <p style="font-size:0.88rem;margin-bottom:0.3rem;">{{ review.comment }}</p>
+                            <div style="color:var(--gold);font-size:0.82rem;">
+                                {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center" style="font-size:0.88rem;">Henüz yorum yok.</p>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.ticket-radio:checked + .ticket-option-card {
+    border-color: var(--purple-light) !important;
+    background: rgba(124, 58, 237, 0.18);
+}
+.ticket-option-card:hover {
+    border-color: rgba(124, 58, 237, 0.5) !important;
+    background: rgba(124, 58, 237, 0.08);
+}
+</style>
 {% endblock %}
