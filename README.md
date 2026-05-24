@@ -36,12 +36,12 @@ Tikatik, konser, tiyatro, festival ve daha fazlası için online bilet satın al
 ##  Kurulum
 
 1. Repoyu klonla
-2. 
+   
 git clone https://github.com/ElifGuvenn/Bilet-Satis-Uygulamasi-.git
 cd Bilet-Satis-Uygulamasi-/firstproject
 
-3. Sanal ortam oluştur ve aktif et
-
+2. Sanal ortam oluştur ve aktif et
+   
 python -m venv venv
 
 # Windows
@@ -49,15 +49,19 @@ venv\Scripts\activate
 
 # macOS / Linux
 source venv/bin/activate
+
 3. Bağımlılıkları yükle
 
 pip install -r requirements.txt
+
 4. Veritabanını oluştur
 
 python manage.py migrate
+
 5. Süper kullanıcı oluştur (isteğe bağlı)
 
 python manage.py createsuperuser
+
 6. Uygulamayı çalıştır
 
 python manage.py runserver
