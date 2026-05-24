@@ -35,13 +35,12 @@ Tikatik, konser, tiyatro, festival ve daha fazlası için online bilet satın al
 
 ##  Kurulum
 
-### 1. Repoyu klonla
-
-```bash
+1. Repoyu klonla
+2. 
 git clone https://github.com/ElifGuvenn/Bilet-Satis-Uygulamasi-.git
 cd Bilet-Satis-Uygulamasi-/firstproject
 
-2. Sanal ortam oluştur ve aktif et
+3. Sanal ortam oluştur ve aktif et
 
 python -m venv venv
 
