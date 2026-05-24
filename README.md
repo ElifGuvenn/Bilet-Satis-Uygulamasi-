@@ -45,11 +45,11 @@ cd Bilet-Satis-Uygulamasi-/firstproject
    
 python -m venv venv
 
-# Windows
+Windows
 
 venv\Scripts\activate
 
-# macOS / Linux
+macOS / Linux
 
 source venv/bin/activate
 
@@ -71,9 +71,9 @@ python manage.py runserver
 
 Tarayıcıda http://127.0.0.1:8000 adresini aç.
 
- Kullanıcı Rolleri
+Kullanıcı Rolleri
  
-Rol	Yetkiler
+Rol Yetkiler
 
 Müşteri	Etkinlik görüntüle, bilet al, yorum yap, sanatçı takip et,bildirimleri ve sistem önerilerini görüntüle.
 
