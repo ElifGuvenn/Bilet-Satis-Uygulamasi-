@@ -38,6 +38,7 @@ Tikatik, konser, tiyatro, festival ve daha fazlası için online bilet satın al
 1. Repoyu klonla
    
 git clone https://github.com/ElifGuvenn/Bilet-Satis-Uygulamasi-.git
+
 cd Bilet-Satis-Uygulamasi-/firstproject
 
 2. Sanal ortam oluştur ve aktif et
@@ -45,9 +46,11 @@ cd Bilet-Satis-Uygulamasi-/firstproject
 python -m venv venv
 
 # Windows
+
 venv\Scripts\activate
 
 # macOS / Linux
+
 source venv/bin/activate
 
 3. Bağımlılıkları yükle
@@ -65,12 +68,17 @@ python manage.py createsuperuser
 6. Uygulamayı çalıştır
 
 python manage.py runserver
+
 Tarayıcıda http://127.0.0.1:8000 adresini aç.
 
  Kullanıcı Rolleri
+ 
 Rol	Yetkiler
+
 Müşteri	Etkinlik görüntüle, bilet al, yorum yap, sanatçı takip et,bildirimleri ve sistem önerilerini görüntüle.
+
 Satıcı	Etkinlik oluştur ve yönet, satış istatistiklerini gör,etkinlik yorumlarını görüntüle
+
 Admin	Tüm kullanıcıları, etkinlikleri ve sanatçıları yönet
 
 
