@@ -2,6 +2,8 @@
 
 Tikatik, konser, tiyatro, festival ve daha fazlası için online bilet satın almayı kolaylaştıran bir Django web uygulamasıdır.
 
+🔗 **Canlı:** https://bilet-satis-uygulamasi.onrender.com/
+
 ---
 
 ##  Özellikler
