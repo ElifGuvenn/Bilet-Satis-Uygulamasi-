@@ -1,16 +1,86 @@
 {% extends 'app/base.html' %}
 {% load static %}
-{% block title %}Homepage{% endblock %}
+{% block title %}Tikatik — Etkinlik Biletleri{% endblock %}
 {% block content %}
-<div class="text-center">
- <h1 class="mb-4"> Welcome</h1>
- <p class="lead">The best ticketing experience for concerts, theater and more</p>
 
- <div class="d-flex justify-content-center">
- <img src="{% static 'img/etkinlik.jpg' %}" alt="Etkinlik Görseli"
+<section class="hero-section">
+    <div class="hero-badge">
+        <i class="bi bi-lightning-charge-fill"></i>
+        Türkiye'nin Bilet Platformu
+    </div>
+    <h1 class="hero-title">Etkinlikleri<br>Kaçırma.</h1>
+    <p class="hero-subtitle">
+        Konser, tiyatro, festival ve daha fazlası için biletini hemen al.
+        Sınırlı koltuklar, sonsuz anılar.
+    </p>
+    
+    <div class="hero-image-wrapper mx-auto" style="max-width:800px;">
+        <img src="{% static 'img/etkinlik.jpg' %}" alt="Etkinlik"
+             class="img-fluid w-100"
+             style="border-radius:20px; display:block;">
+    </div>
+</section>
 
-   class="img-fluid rounded shadow"
-   style="max-width: 100%; height: auto;max-height: 700px; ">
- </div>
-</div>
+<section class="py-4">
+    <div class="row g-3 justify-content-center">
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">500+</div>
+                <div class="stat-label">Aktif Etkinlik</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">50K+</div>
+                <div class="stat-label">Mutlu Kullanıcı</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">81</div>
+                <div class="stat-label">Şehir</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">QR</div>
+                <div class="stat-label">Dijital Bilet</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <h2 class="text-center fw-bold mb-4" style="font-size:1.6rem;">Neden Tikatik?</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card text-center p-2">
+                <div class="card-body">
+                    <div style="font-size:2.2rem;margin-bottom:0.8rem;">🎟️</div>
+                    <h5 class="card-title">Anlık Bilet</h5>
+                    <p>Satın al, QR kodunu al — kapıda sadece göster.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center p-2">
+                <div class="card-body">
+                    <div style="font-size:2.2rem;margin-bottom:0.8rem;">🔔</div>
+                    <h5 class="card-title">Akıllı Bildirimler</h5>
+                    <p>Takip ettiğin sanatçıların etkinliklerini anında öğren.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center p-2">
+                <div class="card-body">
+                    <div style="font-size:2.2rem;margin-bottom:0.8rem;">⭐</div>
+                    <h5 class="card-title">Yorum & Puan</h5>
+                    <p>Etkinlik deneyimini paylaş, topluluğa katkı sağla.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 {% endblock %}

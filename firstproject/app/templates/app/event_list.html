@@ -1,145 +1,216 @@
 {% extends 'app/navbar.html' %}
 {% load crispy_forms_tags %}
 {% load static %}
+{% block title %}Etkinlikler — Tikatik{% endblock %}
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4 text-center">Events</h1>
-    {% if not selected_city %}
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card shadow-sm p-4">
-                    <h5 class="card-title text-center mb-3">Please select a city to view events.</h5>
-                    <form method="get" id="city_form" action="{% url 'event_list' %}">
-                     <div class="mb-3" style="position: relative;">
-                     <label for="city_input" class="form-label">Select a City:</label>
-                     <input type="text" id="city_input" class="form-control" placeholder="Search for a city...">
-                     <input type="hidden" name="city" id="hidden_city_input">
-                     <ul id="city_suggestions" class="list-group" 
-                     style="position: absolute; z-index: 100; width: 100%; max-height: 200px; overflow-y: auto; display: none;">
-                     </ul>
-                     </div>
-                     <div class="text-center">
-                     <button type="submit" class="btn btn-primary mt-2">View Events</button>
-                     </div>
-                    </form>
-                </div>
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <i class="bi bi-calendar-event" style="font-size:1.4rem;color:var(--purple-light);"></i>
+    <h1 class="mb-0" style="font-size:1.8rem;">Etkinlikler</h1>
+</div>
+
+{% if not selected_city %}
+    <div class="city-picker-card card mx-auto">
+        <div class="card-body p-4">
+            <div class="text-center mb-3">
+                <div style="font-size:2.5rem;">📍</div>
+                <h5 class="card-title mt-2 mb-1">Şehrini Seç</h5>
+                <p style="font-size:0.88rem;">Yakınındaki etkinlikleri keşfetmek için bir şehir seç.</p>
             </div>
+            <form method="get" id="city_form" action="{% url 'event_list' %}">
+                <div class="mb-3" style="position: relative;">
+                    <label for="city_input" class="form-label">Şehir Ara</label>
+                    <div class="input-group">
+                        <span class="input-group-text"
+                              style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.11);border-right:none;color:var(--text-secondary);">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" id="city_input" class="form-control"
+                               placeholder="Örn: İstanbul, Ankara..."
+                               style="border-left:none;">
+                    </div>
+                    <input type="hidden" name="city" id="hidden_city_input">
+                    <ul id="city_suggestions" class="list-group"
+                        style="position:absolute;z-index:100;width:100%;max-height:200px;overflow-y:auto;display:none;top:100%;margin-top:4px;">
+                    </ul>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-arrow-right-circle me-2"></i>Etkinlikleri Gör
+                </button>
+            </form>
         </div>
-    {% else %}
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2 class="fw-bold">{{ selected_city }} Events</h2>
-      <a href="{% url 'event_list' %}?clear_city=true" class="btn btn-outline-secondary btn-sm" title="Change City">
-        <i class="bi bi-arrow-left"></i>
-      </a>
-   </div>
-        <form method="get" class="row g-3 mb-4">
+    </div>
+
+{% else %}
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <span class="hero-badge mb-0" style="margin-bottom:0!important;">
+                <i class="bi bi-geo-alt-fill"></i>{{ selected_city }}
+            </span>
+            <span class="text-muted" style="font-size:0.85rem;">{{ events|length }} etkinlik bulundu</span>
+        </div>
+        <a href="{% url 'event_list' %}?clear_city=true" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Şehri Değiştir
+        </a>
+    </div>
+
+    <div class="filter-bar mb-4">
+        <form method="get" class="row g-2 align-items-end">
             <input type="hidden" name="city" value="{{ selected_city }}">
             <div class="col-md-4">
+                <label class="form-label">Kategori</label>
                 <select name="category" class="form-select">
-                    <option value="all">All categories</option>
+                    <option value="all">Tüm Kategoriler</option>
                     {% for key, value in categories %}
-                        <option value="{{ key }}" {% if request.GET.category == key %}selected{% endif %}>
-                            {{ value }}
-                        </option>
+                        <option value="{{ key }}" {% if request.GET.category == key %}selected{% endif %}>{{ value }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-4" style="position: relative;">
-                <input type="text" name="location" id="location_input" placeholder="Location" value="{{ request.GET.location }}" class="form-control">
-                <ul id="location_suggestions" class="list-group" 
-                    style="position: absolute; z-index: 100; width: 100%; max-height: 200px; overflow-y: auto;">
+            <div class="col-md-4" style="position:relative;">
+                <label class="form-label">Mekan</label>
+                <input type="text" name="location" id="location_input"
+                       placeholder="Mekan ara..." value="{{ request.GET.location }}" class="form-control">
+                <ul id="location_suggestions" class="list-group"
+                    style="position:absolute;z-index:100;width:100%;max-height:200px;overflow-y:auto;top:100%;margin-top:4px;">
                 </ul>
             </div>
             <div class="col-md-2">
+                <label class="form-label">Tarih</label>
                 <input type="date" name="date" value="{{ request.GET.date }}" class="form-control">
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">Filter</button>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel me-1"></i>Filtrele
+                </button>
             </div>
         </form>
-        <div class="row">
-            {% for event in events %}
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 shadow-sm">
+    </div>
+
+    <div class="row g-4">
+        {% for event in events %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card event-card h-100">
+                    <div style="position:relative;">
                         {% if event.image %}
-                            <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}" style="height:200px; object-fit:cover;">
+                            <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}">
                         {% else %}
-                            <img src="{% static 'img/default.jpg' %}" class="card-img-top" alt="Default" style="height:200px; object-fit:cover;">
+                            <img src="{% static 'img/default.jpg' %}" class="card-img-top" alt="{{ event.title }}">
                         {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title">{{ event.title }}</h5>
-                            <p class="text-muted mb-1">{{ event.get_category_display }}</p>
-                            <p>{{ event.location }} | {{ event.date }}</p>
-                            <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-primary w-100">Details</a>
+                        <span class="event-category-badge">{{ event.get_category_display }}</span>
+                        {% if event.is_on_sale %}
+                            <span style="position:absolute;top:12px;right:12px;background:rgba(245,158,11,0.9);
+                                         color:#000;padding:0.2rem 0.65rem;border-radius:20px;font-size:0.7rem;
+                                         font-weight:700;letter-spacing:0.3px;text-transform:uppercase;">
+                                İndirim
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title mb-1">{{ event.title }}</h5>
+                        <p class="text-muted mb-1" style="font-size:0.82rem;">
+                            <i class="bi bi-geo-alt me-1"></i>{{ event.location }}{% if event.city %}, {{ event.city }}{% endif %}
+                        </p>
+                        <p class="text-muted mb-3" style="font-size:0.82rem;">
+                            <i class="bi bi-calendar3 me-1"></i>{{ event.date|date:"d M Y" }}
+                            &nbsp;<i class="bi bi-clock me-1"></i>{{ event.time|time:"H:i" }}
+                        </p>
+                        <div class="mt-auto">
+                            <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-arrow-right-circle me-1"></i>Detaylar
+                            </a>
                         </div>
                     </div>
                 </div>
-            {% empty %}
-                <p class="text-muted text-center">No events found in this city.</p>
-            {% endfor %}
-        </div>
-    {% endif %}
-</div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <div style="font-size:3rem;margin-bottom:1rem;opacity:0.4;">🎭</div>
+                    <p class="text-muted">Bu şehirde etkinlik bulunamadı.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% block extra_js %}
 <script>
-   document.addEventListener('DOMContentLoaded', function() {
-        const cityInput = document.getElementById('city_input');
-        const hiddenCityInput = document.getElementById('hidden_city_input');
-        const citySuggestions = document.getElementById('city_suggestions');
-        const cityForm = document.getElementById('city_form');
-        if (cityInput) {
-            cityInput.addEventListener('input', function() {
-                const query = this.value;
-                if (query.length > 1) {
-                    fetch(`/get-city-suggestions/?q=${query}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            citySuggestions.innerHTML = '';
-                            if (data.length > 0) {
-                                citySuggestions.style.display = 'block';
-                                data.forEach(city => {
-                                    const li = document.createElement('li');
-                                    li.className = 'list-group-item list-group-item-action';
-                                    li.textContent = city;
-                                    li.style.cursor = 'pointer';
-                                    li.addEventListener('click', function() {
-                                        cityInput.value = city;
-                                        hiddenCityInput.value = city;
-                                        citySuggestions.style.display = 'none';  });
-                                    citySuggestions.appendChild(li); });
-                            } else {
-                                citySuggestions.style.display = 'block';
-                                citySuggestions.innerHTML = '<li class="list-group-item disabled">No results found</li>';}})
-                        .catch(error => console.error('Error:', error));
-                } else {
-                    citySuggestions.style.display = 'none';
-                    citySuggestions.innerHTML = '';}});
-            document.addEventListener('click', function(e) {
-                if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
-                    citySuggestions.style.display = 'none';}});}
-        const locationInput = document.getElementById('location_input');
-        const suggestionsList = document.getElementById('location_suggestions');
-        if (locationInput) {
-            locationInput.addEventListener('input', function() {
-                const query = this.value;
-                const city = document.querySelector('input[name="city"]').value; 
-                if (query.length > 1) {
-                    fetch(`/get-location-suggestions/?loc=${query}&city=${city}`)
-                        .then(response => response.json())
-                        .then(data => {suggestionsList.innerHTML = ''; 
-                            if (data.length > 0) {
-                                data.forEach(location => {
-                                    const li = document.createElement('li');
-                                    li.className = 'list-group-item list-group-item-action';
-                                    li.textContent = location;
-                                    li.style.cursor = 'pointer';
-                                    li.addEventListener('click', function() {
-                                        locationInput.value = location;
-                                        suggestionsList.innerHTML = '';});
-                                    suggestionsList.appendChild(li);});
-                            } else {
-                                suggestionsList.innerHTML = '<li class="list-group-item disabled">no results found</li>'; }})
-                        .catch(error => console.error('Error:', error));
-                } else {
-                    suggestionsList.innerHTML = '';   } }); } });
+document.addEventListener('DOMContentLoaded', function () {
+    const cityInput = document.getElementById('city_input');
+    const hiddenCityInput = document.getElementById('hidden_city_input');
+    const citySuggestions = document.getElementById('city_suggestions');
+
+    if (cityInput) {
+        cityInput.addEventListener('input', function () {
+            const query = this.value;
+            if (query.length > 1) {
+                fetch(`/get-city-suggestions/?q=${query}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        citySuggestions.innerHTML = '';
+                        if (data.length > 0) {
+                            citySuggestions.style.display = 'block';
+                            data.forEach(city => {
+                                const li = document.createElement('li');
+                                li.className = 'list-group-item list-group-item-action';
+                                li.textContent = city;
+                                li.addEventListener('click', function () {
+                                    cityInput.value = city;
+                                    hiddenCityInput.value = city;
+                                    citySuggestions.style.display = 'none';
+                                });
+                                citySuggestions.appendChild(li);
+                            });
+                        } else {
+                            citySuggestions.style.display = 'block';
+                            citySuggestions.innerHTML = '<li class="list-group-item disabled">Sonuç bulunamadı</li>';
+                        }
+                    }).catch(console.error);
+            } else {
+                citySuggestions.style.display = 'none';
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
+                citySuggestions.style.display = 'none';
+            }
+        });
+    }
+
+    const locationInput = document.getElementById('location_input');
+    const suggestionsList = document.getElementById('location_suggestions');
+
+    if (locationInput) {
+        locationInput.addEventListener('input', function () {
+            const query = this.value;
+            const city = document.querySelector('input[name="city"]').value;
+            if (query.length > 1) {
+                fetch(`/get-location-suggestions/?loc=${query}&city=${city}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        suggestionsList.innerHTML = '';
+                        if (data.length > 0) {
+                            data.forEach(location => {
+                                const li = document.createElement('li');
+                                li.className = 'list-group-item list-group-item-action';
+                                li.textContent = location;
+                                li.addEventListener('click', function () {
+                                    locationInput.value = location;
+                                    suggestionsList.innerHTML = '';
+                                });
+                                suggestionsList.appendChild(li);
+                            });
+                        } else {
+                            suggestionsList.innerHTML = '<li class="list-group-item disabled">Sonuç bulunamadı</li>';
+                        }
+                    }).catch(console.error);
+            } else {
+                suggestionsList.innerHTML = '';
+            }
+        });
+    }
+});
 </script>
+{% endblock %}
+
 {% endblock %}
